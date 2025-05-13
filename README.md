@@ -40,9 +40,11 @@ Tabela de preços e tributos para **venda** de combustiveis:
 |                 |       |       |       |       |       |       |       |       |       |       |       |       |
 | Tributo (%)     | 17,00 | 19,00 | 18,00 | 19,00 | 19,50 | 20,00 | 20,50 | 21,00 | 21,50 | 22,00 | 22,50 | 23,00 |
 
+</br>
+
 ## Requisitos Funcionais
 O sistema deverá conter as seguintes funcionalidades principais:
-1. Registro de Operações de Compra e Venda
+1. **Registro de Operações de Compra e Venda**
 
 * O usuário deverá ser capaz de selecionar o tipo de operação (compra ou venda);
 * Selecionar o tipo de produto (Gasolina, Etanol ou Diesel);
@@ -50,69 +52,72 @@ O sistema deverá conter as seguintes funcionalidades principais:
 * Informar a quantidade do produto (em litros);
 * Salvar a operação no sistema.
 
-2. Cálculo do Valor Unitário Atualizado  
+2. **Cálculo do Valor Unitário Atualizado**
+
     O sistema registra a operação atualizando o valor com base na fórmula abaixo:
 
 	$$\text{Valor Unitário Atualizado} = \text{Quantidade} \times \text{Preço} \times \text{Tributo} \times \text{Selic}
 $$
 
     Onde:  
-    Quantidade: volume do produto em litros informado pelo usuário;  
-    Preço: valor tabelado do produto por litro;  
-    Tributo: percentual do tributo correspondente ao tipo de produto, conforme tabela definida;  
-    Selic: fator de correção monetária baseado na taxa Selic acumulada no período, fixada em **11,5%** para fins de cálculo.  
+    - **Quantidade**: volume do produto em litros informado pelo usuário;  
+    - **Preço**: valor tabelado do produto por litro;  
+    - **Tributo**: percentual do tributo correspondente ao tipo de produto, conforme tabela definida;  
+    - **Selic**: fator de correção monetária baseado na taxa Selic acumulada no período, fixada em **11,5%** para fins de cálculo.  
 
-3. Apresentação da Diferença entre Compras e Vendas  
+3. **Apresentação da Diferença entre Compras e Vendas**
+
     Após o registro das operações de compra e venda, o sistema deverá exibir o resultado da diferença total entre o valor de compra e o valor de venda, considerando os tributos aplicados e a correção monetária.
 
+4. **Autenticação e Autorização** 
 
-4. Autenticação e Autorização  
     O sistema deverá implementar um mecanismo de autenticação e autorização utilizando JWT (JSON Web Token), garantindo o acesso seguro às funcionalidades apenas para usuários autenticados.
 
 
-5. Cadastro de Usuários  
+5. **Cadastro de Usuários** 
+
     Cada usuário deverá possuir os seguintes atributos obrigatórios:
     * Nome completo;
     * Endereço de e-mail (único);
     * Senha de acesso (com critérios de segurança definidos).
 
 ## Requisitos Não Funcionais
-1. API RESTful  
+1. **API RESTful**  
     O backend deverá ser implementado como uma API RESTful, contemplando todas as funcionalidades solicitadas nos requisitos funcionais.
 
 
-2. Persistência de Dados  
+2. **Persistência de Dados**  
     O sistema deverá utilizar um banco de dados relacional, sendo MySQL ou PostgreSQL, para armazenamento persistente das informações.
 
 
-3. ORM (Object-Relational Mapping)  
+3. **ORM (Object-Relational Mapping)**  
     A aplicação deverá utilizar uma ORM para abstração e manipulação do banco de dados, facilitando o desenvolvimento e manutenção.
 
 
-4. Tecnologia do Backend  
+4. **Tecnologia do Backend**  
     O backend deverá ser desenvolvido em JavaScript, TypeScript ou Python, utilizando um framework adequado como Express, NestJS (Node.js), FastAPI (Python) ou similar.
 
 
-5. Tecnologia do Frontend  
+5. **Tecnologia do Frontend**  
     O frontend deverá ser construído utilizando o framework React, com foco em experiência do usuário.
 
 
-6. Versionamento com Git
+6. **Versionamento com Git**  
     O projeto deverá ser versionado utilizando Git, adotando as melhores práticas de convenção de commits (ex: Conventional Commits) para manter um histórico claro e organizado.
 
 ## Desafios adicionais
-1. Testes Unitários  
+1. **Testes Unitários**  
     Escreva testes unitários para verificar o funcionamento correto das funcionalidades da API, garantindo a confiabilidade do backend durante o desenvolvimento e futuras alterações.
 
 
-2. Estilização com Framework de Componentes  
+2. **Estilização com Framework de Componentes**  
     Estilize o frontend utilizando um framework de componentes para React de sua preferência, como PrimeReact, Bootstrap, Material UI, entre outros;
 
-3. Documentação da API com OpenAPI (Swagger)  
+3. **Documentação da API com OpenAPI (Swagger)**  
     Documente a API seguindo a especificação OpenAPI (Swagger), facilitando a compreensão, consumo e testes das rotas disponíveis;
 
 
-4. Containerização com Docker  
+4. **Containerização com Docker**  
     Crie um Dockerfile e um arquivo docker-compose.yaml para facilitar a configuração e execução do ambiente de desenvolvimento, garantindo que o projeto seja executado de forma consistente em diferentes máquinas.
 
 ## Critérios de avaliação
