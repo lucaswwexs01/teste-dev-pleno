@@ -12,7 +12,7 @@ Olá! Este desafio tem por objetivo avaliar a capacidade técnica de candidatos 
 1.  Faça um fork deste repositório para a sua conta pessoal do GitHub.
 2.  Siga as instruções do desafio.
 3.  Após finalizar, faça um pull request para este repositório com a solução do desafio.
-4.  Você tem até 4 dias a partir do recebimento deste teste para enviar a sua solução.
+4.  Você tem até 3 dias a partir do recebimento deste teste para enviar a sua solução.
 
 ## O desafio
 Uma empresa de revenda de combustíveis deseja apurar os impostos pagos pela compra e venda de combustíveis no período do ano de 2024 a fim de levantar possíveis créditos tributários. Para isso, solicita ao setor de TI que desenvolva uma aplicação que registre as compras e vendas realizadas no período aplicando automaticamente os impostos adequados e a correção monetária, onde os valores e tributos correspondentes ao período são detalhados nas tabelas abaixo:
