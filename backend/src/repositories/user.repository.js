@@ -1,125 +1,103 @@
-const { Rate } = require('../database/models');
+const { User } = require('../database/models');
+const { sanitizeUser } = require('../utils/crypto.utils');
 const logger = require('../config/logger');
 
-class RateRepository {
+class UserRepository {
   /**
-   * Busca taxa por mês, ano, tipo de combustível e tipo de operação
-   * @param {number} month - Mês
-   * @param {number} year - Ano
-   * @param {string} fuelType - Tipo do combustível
-   * @param {string} operationType - Tipo da operação
-   * @returns {Promise<Object|null>} Taxa encontrada ou null
+   * Cria um novo usuário
+   * @param {Object} userData - Dados do usuário
+   * @returns {Promise<Object>} Usuário criado
    */
-  async findByMonthAndFuel(month, year, fuelType, operationType) {
+  async create(userData) {
     try {
-      const rate = await Rate.findOne({
-        where: {
-          month,
-          year,
-          fuelType,
-          operationType
+      const user = await User.create(userData);
+      return sanitizeUser(user);
+    } catch (error) {
+      logger.error('Erro ao criar usuário:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca usuário por ID
+   * @param {number} id - ID do usuário
+   * @returns {Promise<Object|null>} Usuário encontrado ou null
+   */
+  async findById(id) {
+    try {
+      const user = await User.findByPk(id);
+      return user ? sanitizeUser(user) : null;
+    } catch (error) {
+      logger.error('Erro ao buscar usuário por ID:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca usuário por email
+   * @param {string} email - Email do usuário
+   * @returns {Promise<Object|null>} Usuário encontrado ou null
+   */
+  async findByEmail(email) {
+    try {
+      const user = await User.findOne({
+        where: { email }
+      });
+      return user;
+    } catch (error) {
+      logger.error('Erro ao buscar usuário por email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Lista todos os usuários com paginação
+   * @param {Object} options - Opções de paginação e filtros
+   * @returns {Promise<Object>} Lista de usuários e metadados
+   */
+  async findAll(options = {}) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        order = [['createdAt', 'DESC']],
+        where = {}
+      } = options;
+
+      const offset = (page - 1) * limit;
+
+      const { count, rows } = await User.findAndCountAll({
+        where,
+        order,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        attributes: { exclude: ['password'] }
+      });
+
+      return {
+        users: rows.map(user => sanitizeUser(user)),
+        pagination: {
+          total: count,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(count / limit)
         }
-      });
-
-      return rate;
+      };
     } catch (error) {
-      logger.error('Erro ao buscar taxa:', error);
+      logger.error('Erro ao listar usuários:', error);
       throw error;
     }
   }
 
   /**
-   * Lista todas as taxas com filtros opcionais
-   * @param {Object} filters - Filtros para busca
-   * @returns {Promise<Array>} Lista de taxas
-   */
-  async findAll(filters = {}) {
-    try {
-      const whereClause = {};
-      
-      if (filters.month) whereClause.month = filters.month;
-      if (filters.year) whereClause.year = filters.year;
-      if (filters.fuelType) whereClause.fuelType = filters.fuelType;
-      if (filters.operationType) whereClause.operationType = filters.operationType;
-
-      const rates = await Rate.findAll({
-        where: whereClause,
-        order: [['year', 'DESC'], ['month', 'DESC']]
-      });
-
-      return rates;
-    } catch (error) {
-      logger.error('Erro ao listar taxas:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Busca taxas por ano
-   * @param {number} year - Ano
-   * @returns {Promise<Array>} Lista de taxas do ano
-   */
-  async findByYear(year) {
-    try {
-      const rates = await Rate.findAll({
-        where: { year },
-        order: [['month', 'ASC']]
-      });
-
-      return rates;
-    } catch (error) {
-      logger.error('Erro ao buscar taxas por ano:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Busca taxas por tipo de combustível
-   * @param {string} fuelType - Tipo do combustível
-   * @param {number} year - Ano (opcional)
-   * @returns {Promise<Array>} Lista de taxas
-   */
-  async findByFuelType(fuelType, year = null) {
-    try {
-      const whereClause = { fuelType };
-      if (year) whereClause.year = year;
-
-      const rates = await Rate.findAll({
-        where: whereClause,
-        order: [['year', 'DESC'], ['month', 'DESC']]
-      });
-
-      return rates;
-    } catch (error) {
-      logger.error('Erro ao buscar taxas por tipo de combustível:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Cria uma nova taxa
-   * @param {Object} rateData - Dados da taxa
-   * @returns {Promise<Object>} Taxa criada
-   */
-  async create(rateData) {
-    try {
-      const rate = await Rate.create(rateData);
-      return rate;
-    } catch (error) {
-      logger.error('Erro ao criar taxa:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Atualiza uma taxa
-   * @param {number} id - ID da taxa
+   * Atualiza um usuário
+   * @param {number} id - ID do usuário
    * @param {Object} updateData - Dados para atualização
-   * @returns {Promise<Object|null>} Taxa atualizada ou null
+   * @returns {Promise<Object|null>} Usuário atualizado ou null
    */
   async update(id, updateData) {
     try {
-      const [affectedRows] = await Rate.update(updateData, {
+      const [affectedRows] = await User.update(updateData, {
         where: { id }
       });
 
@@ -127,111 +105,68 @@ class RateRepository {
         return null;
       }
 
-      const updatedRate = await Rate.findByPk(id);
-      return updatedRate;
+      const updatedUser = await this.findById(id);
+      return updatedUser;
     } catch (error) {
-      logger.error('Erro ao atualizar taxa:', error);
+      logger.error('Erro ao atualizar usuário:', error);
       throw error;
     }
   }
 
   /**
-   * Remove uma taxa
-   * @param {number} id - ID da taxa
-   * @returns {Promise<boolean>} True se removida com sucesso
+   * Remove um usuário
+   * @param {number} id - ID do usuário
+   * @returns {Promise<boolean>} True se removido com sucesso
    */
   async delete(id) {
     try {
-      const deletedRows = await Rate.destroy({
+      const deletedRows = await User.destroy({
         where: { id }
       });
 
       return deletedRows > 0;
     } catch (error) {
-      logger.error('Erro ao remover taxa:', error);
+      logger.error('Erro ao remover usuário:', error);
       throw error;
     }
   }
 
   /**
-   * Busca estatísticas das taxas
-   * @param {number} year - Ano
-   * @returns {Promise<Object>} Estatísticas das taxas
+   * Verifica se email já existe
+   * @param {string} email - Email a ser verificado
+   * @param {number} excludeId - ID do usuário a ser excluído da verificação
+   * @returns {Promise<boolean>} True se email existe
    */
-  async getStatistics(year = 2024) {
+  async emailExists(email, excludeId = null) {
     try {
-      const rates = await this.findByYear(year);
-      
-      const stats = {
-        totalRates: rates.length,
-        byFuelType: {},
-        byOperationType: {},
-        averageTaxRate: 0,
-        averageUnitPrice: 0
-      };
+      const whereClause = { email };
+      if (excludeId) {
+        whereClause.id = { [require('sequelize').Op.ne]: excludeId };
+      }
 
-      let totalTaxRate = 0;
-      let totalUnitPrice = 0;
-
-      rates.forEach(rate => {
-        // Por tipo de combustível
-        if (!stats.byFuelType[rate.fuelType]) {
-          stats.byFuelType[rate.fuelType] = {
-            count: 0,
-            averagePrice: 0,
-            averageTaxRate: 0,
-            totalPrice: 0,
-            totalTaxRate: 0
-          };
-        }
-        
-        stats.byFuelType[rate.fuelType].count++;
-        stats.byFuelType[rate.fuelType].totalPrice += parseFloat(rate.unitPrice);
-        stats.byFuelType[rate.fuelType].totalTaxRate += parseFloat(rate.taxRate);
-
-        // Por tipo de operação
-        if (!stats.byOperationType[rate.operationType]) {
-          stats.byOperationType[rate.operationType] = {
-            count: 0,
-            averagePrice: 0,
-            averageTaxRate: 0,
-            totalPrice: 0,
-            totalTaxRate: 0
-          };
-        }
-        
-        stats.byOperationType[rate.operationType].count++;
-        stats.byOperationType[rate.operationType].totalPrice += parseFloat(rate.unitPrice);
-        stats.byOperationType[rate.operationType].totalTaxRate += parseFloat(rate.taxRate);
-
-        totalTaxRate += parseFloat(rate.taxRate);
-        totalUnitPrice += parseFloat(rate.unitPrice);
-      });
-
-      // Calcular médias
-      stats.averageTaxRate = rates.length > 0 ? totalTaxRate / rates.length : 0;
-      stats.averageUnitPrice = rates.length > 0 ? totalUnitPrice / rates.length : 0;
-
-      // Calcular médias por categoria
-      Object.keys(stats.byFuelType).forEach(fuelType => {
-        const data = stats.byFuelType[fuelType];
-        data.averagePrice = data.count > 0 ? data.totalPrice / data.count : 0;
-        data.averageTaxRate = data.count > 0 ? data.totalTaxRate / data.count : 0;
-      });
-
-      Object.keys(stats.byOperationType).forEach(operationType => {
-        const data = stats.byOperationType[operationType];
-        data.averagePrice = data.count > 0 ? data.totalPrice / data.count : 0;
-        data.averageTaxRate = data.count > 0 ? data.totalTaxRate / data.count : 0;
-      });
-
-      return stats;
+      const user = await User.findOne({ where: whereClause });
+      return !!user;
     } catch (error) {
-      logger.error('Erro ao calcular estatísticas das taxas:', error);
+      logger.error('Erro ao verificar existência do email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ativa/desativa um usuário
+   * @param {number} id - ID do usuário
+   * @param {boolean} isActive - Status ativo
+   * @returns {Promise<Object|null>} Usuário atualizado ou null
+   */
+  async updateStatus(id, isActive) {
+    try {
+      return await this.update(id, { isActive });
+    } catch (error) {
+      logger.error('Erro ao atualizar status do usuário:', error);
       throw error;
     }
   }
 }
 
-module.exports = new RateRepository();
+module.exports = new UserRepository();
 
