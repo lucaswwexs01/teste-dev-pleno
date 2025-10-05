@@ -1,0 +1,16 @@
+node_modules/
+npm-debug.log*
+.env
+logs/
+*.logs
+build/
+dist/
+coverage/
+*.sqlite
+*.db
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+tmp/
+temp/
