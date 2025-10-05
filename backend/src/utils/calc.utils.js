@@ -81,10 +81,15 @@ const isValidQuantity = (quantity) => {
  * @returns {string} Valor formatado em reais
  */
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('pt-BR', {
+  // Formatar com separador de milhares como ponto e decimal como vírgula
+  const formatted = value.toLocaleString('pt-BR', {
     style: 'currency',
-    currency: 'BRL'
-  }).format(value);
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  // Substituir espaço não-quebrável por espaço normal
+  return formatted.replace(/\u00A0/g, ' ');
 };
 
 /**
@@ -93,7 +98,7 @@ const formatCurrency = (value) => {
  * @returns {string} Quantidade formatada com unidade
  */
 const formatQuantity = (quantity) => {
-  return `${quantity.toFixed(3)} L`;
+  return `${quantity.toFixed(3).replace('.', ',')} L`;
 };
 
 /**
