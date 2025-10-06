@@ -1,0 +1,76 @@
+services:
+  # Banco de dados MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: fuel_tax_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: test_dev_pleno
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - fuel_tax_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fuel_tax_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: test_dev_pleno
+      DB_USER: root
+      DB_PASSWORD: root
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 24h
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mysql
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - fuel_tax_network
+    command: >
+      sh -c "
+        echo 'Aguardando MySQL...' &&
+        sleep 30 &&
+        echo 'Executando migrations...' &&
+        npx sequelize-cli db:migrate &&
+        echo 'Executando seeders...' &&
+        npx sequelize-cli db:seed:all &&
+        echo 'Iniciando servidor...' &&
+        npm start
+      "
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fuel_tax_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - fuel_tax_network
+
+volumes:
+  mysql_data:
+
+networks:
+  fuel_tax_network:
+    driver: bridge
+
